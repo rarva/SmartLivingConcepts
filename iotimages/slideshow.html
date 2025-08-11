@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Image Scroll Showcase v1.8.1</title>
+  <title>Image Scroll Showcase v1.9</title>
   <style>
     body {
       margin: 0;
@@ -13,17 +13,25 @@
     }
 
     .slideshow {
-      display: flex;
-      flex-direction: row;
+      position: relative;
       width: 100vw;
       height: 100vh;
     }
 
     .slide {
-      flex: 1;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      transition: opacity 1s ease-in-out;
       overflow: hidden;
-      position: relative;
-      border: 2px dashed transparent;
+    }
+
+    .slide.active {
+      opacity: 1;
+      z-index: 1;
     }
 
     .slide img {
@@ -53,36 +61,22 @@
       opacity: 0.5;
       pointer-events: none;
     }
-
-    .debug-label {
-      position: absolute;
-      top: 5px;
-      left: 5px;
-      background: rgba(255, 255, 255, 0.1);
-      color: #0f0;
-      font-size: 12px;
-      padding: 2px 6px;
-      border-radius: 4px;
-      pointer-events: none;
-      z-index: 10;
-    }
-
-    .debug-mode .slide {
-      border-color: #0f0;
-    }
   </style>
 </head>
-<body class="debug-mode">
+<body>
   <div class="slideshow">
     <div class="slide"><img src="https://rarva.github.io/SmartLivingConcepts/iotimages/1.jpg" alt="Image 1" /></div>
     <div class="slide"><img src="https://rarva.github.io/SmartLivingConcepts/iotimages/2.jpg" alt="Image 2" /></div>
     <div class="slide"><img src="https://rarva.github.io/SmartLivingConcepts/iotimages/3.jpg" alt="Image 3" /></div>
   </div>
 
-  <div class="version-tag">v1.8.1 (Debug Mode)</div>
+  <div class="version-tag">v1.9</div>
 
   <script>
     let scrollDirectionToggle = true;
+    let currentSlideIndex = 0;
+
+    const slides = document.querySelectorAll(".slide");
 
     function applyScrollEffect(slide) {
       const img = slide.querySelector("img");
@@ -98,10 +92,8 @@
           const container = slide.getBoundingClientRect();
 
           let scrollAmount = 0;
-          let direction = "";
 
           if (naturalHeight > naturalWidth) {
-            direction = "vertical";
             slide.classList.add("scroll-vertical");
             scrollAmount = img.offsetHeight - container.height;
 
@@ -117,7 +109,6 @@
                 : `translateY(0)`;
             }
           } else {
-            direction = "horizontal";
             slide.classList.add("scroll-horizontal");
             scrollAmount = img.offsetWidth - container.width;
 
@@ -133,17 +124,6 @@
                 : `translateX(0)`;
             }
           }
-
-          // Add debug label
-          if (document.body.classList.contains("debug-mode")) {
-            let label = slide.querySelector(".debug-label");
-            if (!label) {
-              label = document.createElement("div");
-              label.className = "debug-label";
-              slide.appendChild(label);
-            }
-            label.textContent = `${direction} scroll: ${Math.round(scrollAmount)}px`;
-          }
         } else {
           setTimeout(checkImageReady, 100);
         }
@@ -152,14 +132,23 @@
       checkImageReady();
     }
 
-    function startSlideshow() {
-      const slides = document.querySelectorAll(".slide");
-      slides.forEach(applyScrollEffect);
-      scrollDirectionToggle = !scrollDirectionToggle;
+    function showSlide(index) {
+      slides.forEach((slide, i) => {
+        slide.classList.toggle("active", i === index);
+        if (i === index) applyScrollEffect(slide);
+      });
     }
 
-    setInterval(startSlideshow, 12000);
-    window.addEventListener("load", startSlideshow);
+    function nextSlide() {
+      currentSlideIndex = (currentSlideIndex + 1) % slides.length;
+      scrollDirectionToggle = !scrollDirectionToggle;
+      showSlide(currentSlideIndex);
+    }
+
+    window.addEventListener("load", () => {
+      showSlide(currentSlideIndex);
+      setInterval(nextSlide, 12000);
+    });
   </script>
 </body>
 </html>
