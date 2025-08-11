@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Image Scroll Showcase v2.7</title>
+  <title>Image Scroll Showcase v2.9</title>
   <style>
     body {
       margin: 0;
@@ -25,7 +25,7 @@
       width: 100%;
       height: 100%;
       opacity: 0;
-      transition: opacity 1.5s ease-in-out;
+      transition: opacity 3s ease-in-out;
       overflow: hidden;
       z-index: 0;
     }
@@ -66,7 +66,7 @@
 </head>
 <body>
   <div class="slideshow" id="slideshow"></div>
-  <div class="version-tag">v2.8</div>
+  <div class="version-tag">v2.9</div>
 
   <script>
     const imageFolder = "https://rarva.github.io/SmartLivingConcepts/iotimages/";
@@ -105,10 +105,7 @@
           const container = slide.getBoundingClientRect();
 
           if (naturalWidth === naturalHeight) {
-            // Scale to 10% larger than container
-            const scaleX = (container.width * 1.1) / container.width;
-            const scaleY = (container.height * 1.1) / container.height;
-            const scale = Math.min(scaleX, scaleY); // Uniform scale
+            const scale = 1.1;
 
             img.style.width = `${container.width}px`;
             img.style.height = `${container.height}px`;
@@ -164,8 +161,13 @@
       const current = slides[index];
 
       if (previous) {
-        previous.classList.remove("active");
         previous.style.zIndex = 1;
+        previous.classList.remove("active");
+        previous.style.opacity = "1";
+
+        setTimeout(() => {
+          previous.style.opacity = "0";
+        }, 3000);
       }
 
       current.classList.add("active");
@@ -173,12 +175,6 @@
       current.style.opacity = "1";
 
       applyScrollEffect(current);
-
-      if (previous) {
-        setTimeout(() => {
-          previous.style.opacity = "0";
-        }, 8500);
-      }
 
       currentSlideIndex = index;
     }
