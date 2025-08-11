@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Image Scroll Showcase v3.3</title>
+  <title>Image Scroll Showcase v3.5</title>
   <style>
     body {
       margin: 0;
@@ -65,7 +65,7 @@
 </head>
 <body>
   <div class="slideshow" id="slideshow"></div>
-  <div class="version-tag">v3.3</div>
+  <div class="version-tag">v3.5</div>
 
   <script>
     const imageFolder = "https://rarva.github.io/SmartLivingConcepts/iotimages/";
@@ -73,6 +73,16 @@
     let scrollDirectionToggle = true;
     let currentSlideIndex = 0;
     let slides = [];
+    let randomOrder = [];
+    let randomIndex = 0;
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
 
     function loadImagesSequentially(index = 1) {
       const img = new Image();
@@ -86,8 +96,16 @@
         loadImagesSequentially(index + 1);
       };
       img.onerror = () => {
-        if (slides.length > 0) startSlideshow();
+        if (slides.length > 1) {
+          reshuffleOrder();
+          startSlideshow();
+        }
       };
+    }
+
+    function reshuffleOrder() {
+      randomOrder = shuffle([...Array(slides.length - 1).keys()].map(i => i + 1));
+      randomIndex = 0;
     }
 
     function applyScrollEffect(slide) {
@@ -181,17 +199,22 @@
     }
 
     function nextSlide() {
-      const nextIndex = (currentSlideIndex + 1) % slides.length;
+      if (randomIndex >= randomOrder.length) {
+        reshuffleOrder();
+      }
+
+      const nextIndex = randomOrder[randomIndex];
+      randomIndex++;
       scrollDirectionToggle = !scrollDirectionToggle;
       showSlide(nextIndex);
     }
 
     function startSlideshow() {
-      showSlide(currentSlideIndex);
+      showSlide(0); // always start with first image
       setTimeout(() => {
         setInterval(nextSlide, 9000);
         nextSlide();
-      }, 9000); // give first image time to scroll and fade in
+      }, 9000); // allow first image to scroll and fade in
     }
 
     window.addEventListener("load", () => {
