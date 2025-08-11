@@ -2,14 +2,19 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Image Scroll Showcase v2.0</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Slideshow v2.1</title>
   <style>
-    body {
+    * {
+      box-sizing: border-box;
       margin: 0;
-      background: #000;
+      padding: 0;
+    }
+
+    body, html {
+      height: 100%;
       overflow: hidden;
-      font-family: sans-serif;
+      background-color: #000;
     }
 
     .slideshow {
@@ -20,13 +25,10 @@
 
     .slide {
       position: absolute;
-      top: 0;
-      left: 0;
       width: 100%;
       height: 100%;
       opacity: 0;
-      transition: opacity 3s ease-in-out;
-      overflow: hidden;
+      transition: opacity 5s ease-in-out;
     }
 
     .slide.active {
@@ -38,56 +40,47 @@
       position: absolute;
       top: 0;
       left: 0;
+      height: 100%;
+      width: auto;
+      transition: transform 6s linear;
       will-change: transform;
-      transition: transform 8s linear;
     }
 
     .scroll-horizontal img {
-      height: 100%;
-      width: auto;
-    }
-
-    .scroll-vertical img {
       width: 100%;
       height: auto;
     }
 
-    .version-tag {
-      position: absolute;
-      bottom: 10px;
-      right: 10px;
-      color: #fff;
-      font-size: 12px;
-      opacity: 0.5;
-      pointer-events: none;
+    .scroll-vertical img {
+      height: 100%;
+      width: auto;
     }
   </style>
 </head>
 <body>
-  <div class="slideshow" id="slideshow"></div>
-  <div class="version-tag">v2.0</div>
+  <div class="slideshow">
+    <div class="slide active">
+      <img src="image1.jpg" alt="Image 1" />
+    </div>
+    <div class="slide">
+      <img src="image2.jpg" alt="Image 2" />
+    </div>
+    <div class="slide">
+      <img src="image3.jpg" alt="Image 3" />
+    </div>
+  </div>
 
   <script>
-    const imageFolder = "https://rarva.github.io/SmartLivingConcepts/iotimages/";
-    const slideshow = document.getElementById("slideshow");
+    let currentSlide = 0;
     let scrollDirectionToggle = true;
-    let currentSlideIndex = 0;
-    let slides = [];
 
-    function loadImagesSequentially(index = 1) {
-      const img = new Image();
-      img.src = `${imageFolder}${index}.jpg`;
-      img.onload = () => {
-        const slide = document.createElement("div");
-        slide.className = "slide";
-        slide.appendChild(img);
-        slideshow.appendChild(slide);
-        slides.push(slide);
-        loadImagesSequentially(index + 1);
-      };
-      img.onerror = () => {
-        if (slides.length > 0) startSlideshow();
-      };
+    const slides = document.querySelectorAll(".slide");
+
+    function showSlide(index) {
+      slides.forEach((slide, i) => {
+        slide.classList.toggle("active", i === index);
+        if (i === index) applyScrollEffect(slide);
+      });
     }
 
     function applyScrollEffect(slide) {
@@ -103,36 +96,50 @@
           const naturalHeight = img.naturalHeight;
           const container = slide.getBoundingClientRect();
 
-          let scrollAmount = 0;
+          let scrollAmountX = 0;
+          let scrollAmountY = 0;
 
-          if (naturalHeight > naturalWidth) {
+          if (naturalWidth === naturalHeight) {
+            // Square image: diagonal scroll with 10% scale
+            const scale = 1.1;
+            img.style.transform = `scale(${scale}) translate(0, 0)`;
+            img.style.transition = "none";
+
+            void img.offsetWidth;
+
+            const moveX = scrollDirectionToggle ? 10 : -10;
+            const moveY = scrollDirectionToggle ? 10 : -10;
+
+            img.style.transition = "transform 10s linear";
+            img.style.transform = `scale(${scale}) translate(${moveX}%, ${moveY}%)`;
+          } else if (naturalHeight > naturalWidth) {
             slide.classList.add("scroll-vertical");
-            scrollAmount = img.offsetHeight - container.height;
+            scrollAmountY = img.offsetHeight - container.height;
 
-            if (scrollAmount > 0) {
+            if (scrollAmountY > 0) {
               img.style.transform = scrollDirectionToggle
                 ? `translateY(0)`
-                : `translateY(-${scrollAmount}px)`;
+                : `translateY(-${scrollAmountY}px)`;
 
               void img.offsetWidth;
               img.style.transition = "transform 10s linear";
               img.style.transform = scrollDirectionToggle
-                ? `translateY(-${scrollAmount}px)`
+                ? `translateY(-${scrollAmountY}px)`
                 : `translateY(0)`;
             }
           } else {
             slide.classList.add("scroll-horizontal");
-            scrollAmount = img.offsetWidth - container.width;
+            scrollAmountX = img.offsetWidth - container.width;
 
-            if (scrollAmount > 0) {
+            if (scrollAmountX > 0) {
               img.style.transform = scrollDirectionToggle
                 ? `translateX(0)`
-                : `translateX(-${scrollAmount}px)`;
+                : `translateX(-${scrollAmountX}px)`;
 
               void img.offsetWidth;
               img.style.transition = "transform 10s linear";
               img.style.transform = scrollDirectionToggle
-                ? `translateX(-${scrollAmount}px)`
+                ? `translateX(-${scrollAmountX}px)`
                 : `translateX(0)`;
             }
           }
@@ -144,27 +151,14 @@
       checkImageReady();
     }
 
-    function showSlide(index) {
-      slides.forEach((slide, i) => {
-        slide.classList.toggle("active", i === index);
-        if (i === index) applyScrollEffect(slide);
-      });
-    }
-
     function nextSlide() {
-      currentSlideIndex = (currentSlideIndex + 1) % slides.length;
+      currentSlide = (currentSlide + 1) % slides.length;
       scrollDirectionToggle = !scrollDirectionToggle;
-      showSlide(currentSlideIndex);
+      showSlide(currentSlide);
     }
 
-    function startSlideshow() {
-      showSlide(currentSlideIndex);
-      setInterval(nextSlide, 12000);
-    }
-
-    window.addEventListener("load", () => {
-      loadImagesSequentially();
-    });
+    setInterval(nextSlide, 12000); // 12 seconds per slide
+    showSlide(currentSlide);
   </script>
 </body>
 </html>
