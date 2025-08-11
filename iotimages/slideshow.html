@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Image Scroll Showcase v2.4</title>
+  <title>Image Scroll Showcase v2.5</title>
   <style>
     body {
       margin: 0;
@@ -27,11 +27,12 @@
       opacity: 0;
       transition: opacity 1.5s ease-in-out;
       overflow: hidden;
+      z-index: 0;
     }
 
     .slide.active {
       opacity: 1;
-      z-index: 1;
+      z-index: 2;
     }
 
     .slide img {
@@ -65,7 +66,7 @@
 </head>
 <body>
   <div class="slideshow" id="slideshow"></div>
-  <div class="version-tag">v2.4</div>
+  <div class="version-tag">v2.5</div>
 
   <script>
     const imageFolder = "https://rarva.github.io/SmartLivingConcepts/iotimages/";
@@ -104,7 +105,6 @@
           const container = slide.getBoundingClientRect();
 
           if (naturalWidth === naturalHeight) {
-            // Square image: diagonal scroll with 10% scale
             const scale = 1.1;
             img.style.transform = `scale(${scale}) translate(0, 0)`;
             img.style.transition = "none";
@@ -156,27 +156,34 @@
     }
 
     function showSlide(index) {
-      slides.forEach((slide, i) => {
-        slide.classList.remove("active");
-        slide.style.opacity = "0";
-      });
-
+      const previous = slides[currentSlideIndex];
       const current = slides[index];
+
+      if (previous) {
+        previous.classList.remove("active");
+        previous.style.zIndex = 1;
+      }
+
       current.classList.add("active");
+      current.style.zIndex = 2;
       current.style.opacity = "1";
 
       applyScrollEffect(current);
 
-      // Start fade-out early (after 8.5s)
-      setTimeout(() => {
-        current.style.opacity = "0";
-      }, 8500);
+      // Fade out previous slide after 8.5s
+      if (previous) {
+        setTimeout(() => {
+          previous.style.opacity = "0";
+        }, 8500);
+      }
+
+      currentSlideIndex = index;
     }
 
     function nextSlide() {
-      currentSlideIndex = (currentSlideIndex + 1) % slides.length;
+      const nextIndex = (currentSlideIndex + 1) % slides.length;
       scrollDirectionToggle = !scrollDirectionToggle;
-      showSlide(currentSlideIndex);
+      showSlide(nextIndex);
     }
 
     function startSlideshow() {
