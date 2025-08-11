@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Image Scroll Showcase v3.2</title>
+  <title>Image Scroll Showcase v3.3</title>
   <style>
     body {
       margin: 0;
@@ -65,7 +65,7 @@
 </head>
 <body>
   <div class="slideshow" id="slideshow"></div>
-  <div class="version-tag">v3.2</div>
+  <div class="version-tag">v3.3</div>
 
   <script>
     const imageFolder = "https://rarva.github.io/SmartLivingConcepts/iotimages/";
@@ -102,7 +102,7 @@
           const naturalWidth = img.naturalWidth;
           const naturalHeight = img.naturalHeight;
           const container = slide.getBoundingClientRect();
-          const duration = 12; // total slide duration
+          const duration = 12;
 
           if (naturalWidth === naturalHeight) {
             const scale = 1.1;
@@ -167,14 +167,14 @@
 
       applyScrollEffect(current);
 
-      if (previous) {
+      if (previous && previous !== current) {
         previous.style.zIndex = 1;
         previous.classList.remove("active");
         previous.style.opacity = "1";
 
         setTimeout(() => {
           previous.style.opacity = "0";
-        }, 0); // fade starts immediately
+        }, 0);
       }
 
       currentSlideIndex = index;
@@ -188,7 +188,10 @@
 
     function startSlideshow() {
       showSlide(currentSlideIndex);
-      setInterval(nextSlide, 9000); // start crossfade at 9s, scroll continues through it
+      setTimeout(() => {
+        setInterval(nextSlide, 9000);
+        nextSlide();
+      }, 9000); // give first image time to scroll and fade in
     }
 
     window.addEventListener("load", () => {
