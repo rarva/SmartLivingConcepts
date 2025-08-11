@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Image Scroll Showcase v2.5</title>
+  <title>Image Scroll Showcase v2.6</title>
   <style>
     body {
       margin: 0;
@@ -66,7 +66,7 @@
 </head>
 <body>
   <div class="slideshow" id="slideshow"></div>
-  <div class="version-tag">v2.5</div>
+  <div class="version-tag">v2.6</div>
 
   <script>
     const imageFolder = "https://rarva.github.io/SmartLivingConcepts/iotimages/";
@@ -105,7 +105,13 @@
           const container = slide.getBoundingClientRect();
 
           if (naturalWidth === naturalHeight) {
-            const scale = 1.1;
+            const containerWidth = container.width;
+            const containerHeight = container.height;
+
+            const scaleX = (containerWidth * 1.1) / containerWidth;
+            const scaleY = (containerHeight * 1.1) / containerHeight;
+            const scale = Math.max(scaleX, scaleY);
+
             img.style.transform = `scale(${scale}) translate(0, 0)`;
             img.style.transition = "none";
 
@@ -170,7 +176,6 @@
 
       applyScrollEffect(current);
 
-      // Fade out previous slide after 8.5s
       if (previous) {
         setTimeout(() => {
           previous.style.opacity = "0";
