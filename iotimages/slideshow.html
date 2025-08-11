@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Image Scroll Showcase v2.9</title>
+  <title>Image Scroll Showcase v3.0</title>
   <style>
     body {
       margin: 0;
@@ -40,7 +40,6 @@
       top: 0;
       left: 0;
       will-change: transform;
-      transition: transform 10s linear;
     }
 
     .scroll-horizontal img {
@@ -66,7 +65,7 @@
 </head>
 <body>
   <div class="slideshow" id="slideshow"></div>
-  <div class="version-tag">v2.9</div>
+  <div class="version-tag">v3.0</div>
 
   <script>
     const imageFolder = "https://rarva.github.io/SmartLivingConcepts/iotimages/";
@@ -103,10 +102,10 @@
           const naturalWidth = img.naturalWidth;
           const naturalHeight = img.naturalHeight;
           const container = slide.getBoundingClientRect();
+          const speed = 20; // pixels per second
 
           if (naturalWidth === naturalHeight) {
             const scale = 1.1;
-
             img.style.width = `${container.width}px`;
             img.style.height = `${container.height}px`;
 
@@ -115,19 +114,21 @@
             const moveX = scrollDirectionToggle ? 5 : -5;
             const moveY = scrollDirectionToggle ? 5 : -5;
 
-            img.style.transition = "transform 10s linear";
+            img.style.transition = `transform 9s linear`;
             img.style.transform = `scale(${scale}) translate(${moveX}%, ${moveY}%)`;
           } else if (naturalHeight > naturalWidth) {
             slide.classList.add("scroll-vertical");
             const scrollAmount = img.offsetHeight - container.height;
 
             if (scrollAmount > 0) {
+              const duration = scrollAmount / speed;
+
               img.style.transform = scrollDirectionToggle
                 ? `translateY(0)`
                 : `translateY(-${scrollAmount}px)`;
 
               void img.offsetWidth;
-              img.style.transition = "transform 10s linear";
+              img.style.transition = `transform ${duration}s linear`;
               img.style.transform = scrollDirectionToggle
                 ? `translateY(-${scrollAmount}px)`
                 : `translateY(0)`;
@@ -137,12 +138,14 @@
             const scrollAmount = img.offsetWidth - container.width;
 
             if (scrollAmount > 0) {
+              const duration = scrollAmount / speed;
+
               img.style.transform = scrollDirectionToggle
                 ? `translateX(0)`
                 : `translateX(-${scrollAmount}px)`;
 
               void img.offsetWidth;
-              img.style.transition = "transform 10s linear";
+              img.style.transition = `transform ${duration}s linear`;
               img.style.transform = scrollDirectionToggle
                 ? `translateX(-${scrollAmount}px)`
                 : `translateX(0)`;
@@ -175,7 +178,6 @@
       current.style.opacity = "1";
 
       applyScrollEffect(current);
-
       currentSlideIndex = index;
     }
 
@@ -187,7 +189,7 @@
 
     function startSlideshow() {
       showSlide(currentSlideIndex);
-      setInterval(nextSlide, 12000);
+      setInterval(nextSlide, 12000); // 9s scroll + 3s crossfade
     }
 
     window.addEventListener("load", () => {
