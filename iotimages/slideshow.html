@@ -76,7 +76,7 @@
 </head>
 <body>
   <div class="aspect-ratio-box">
-    <div class="version-tag">v1.5 – 2025-08-11</div>
+    <div class="version-tag">v1.6 – 2025-08-11</div>
     <div class="slideshow-container">
       <div class="slide active">
         <img src="https://raw.githubusercontent.com/rarva/SmartLivingConcepts/main/iotimages/1.jpg" alt="Slide 1">
@@ -93,11 +93,13 @@
   <script>
     const slides = document.querySelectorAll(".slide");
     let index = 0;
+    let scrollDirectionToggle = true; // flips each time
 
     function applyScrollEffect(slide) {
       const img = slide.querySelector("img");
 
       // Reset styles
+      img.style.transition = "none";
       img.style.transform = "none";
       slide.classList.remove("scroll-vertical", "scroll-horizontal");
 
@@ -109,27 +111,33 @@
 
           let direction = "horizontal";
           let scrollAmount = 0;
+          let transformValue = "none";
 
           if (naturalHeight > naturalWidth) {
             direction = "vertical";
             slide.classList.add("scroll-vertical");
             scrollAmount = img.offsetHeight - container.height;
+            if (scrollAmount > 0) {
+              transformValue = scrollDirectionToggle
+                ? `translateY(-${scrollAmount}px)`
+                : `translateY(${scrollAmount}px)`;
+            }
           } else {
             direction = "horizontal";
             slide.classList.add("scroll-horizontal");
             scrollAmount = img.offsetWidth - container.width;
+            if (scrollAmount > 0) {
+              transformValue = scrollDirectionToggle
+                ? `translateX(-${scrollAmount}px)`
+                : `translateX(${scrollAmount}px)`;
+            }
           }
 
-          if (scrollAmount > 0) {
-            img.style.transform = direction === "vertical"
-              ? `translateY(-${scrollAmount}px)`
-              : `translateX(-${scrollAmount}px)`;
-          } else {
-            // Force a small movement to show it's working
-            img.style.transform = direction === "vertical"
-              ? `translateY(-20px)`
-              : `translateX(-20px)`;
-          }
+          // Force reflow to restart transition
+          void img.offsetWidth;
+
+          img.style.transition = "transform 10s linear";
+          img.style.transform = transformValue;
         } else {
           setTimeout(checkImageReady, 100);
         }
@@ -146,7 +154,9 @@
           applyScrollEffect(slide);
         }
       });
+
       index = (index + 1) % slides.length;
+      scrollDirectionToggle = !scrollDirectionToggle; // flip direction
     }
 
     setInterval(showSlides, 10000);
