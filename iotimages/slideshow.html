@@ -12,7 +12,7 @@
     .aspect-ratio-box {
       position: relative;
       width: 100%;
-      padding-top: 100%; /* 1:1 aspect ratio */
+      padding-top: 100%; /* Square */
       overflow: hidden;
       border-radius: 20px;
     }
@@ -47,10 +47,6 @@
       top: 0;
       left: 0;
       transition: transform 10s linear;
-      width: auto;
-      height: auto;
-      max-width: none;
-      max-height: none;
       border-radius: 20px;
     }
 
@@ -82,34 +78,41 @@
 
   <script>
     const slides = document.querySelectorAll(".slide");
+    let index = 0;
 
     function applyScrollEffect(slide) {
       const img = slide.querySelector("img");
 
-      // Reset styles
+      // Reset
       img.style.transform = "none";
       slide.classList.remove("scroll-vertical", "scroll-horizontal");
 
-      // Wait for image to load
       img.onload = () => {
         const naturalWidth = img.naturalWidth;
         const naturalHeight = img.naturalHeight;
+        const container = slide.getBoundingClientRect();
 
         if (naturalHeight > naturalWidth) {
-          // Vertical scroll
+          // Vertical scroll: fit width
           slide.classList.add("scroll-vertical");
-          const scrollAmount = img.offsetHeight - slide.offsetHeight;
-          img.style.transform = `translateY(-${scrollAmount}px)`;
+          setTimeout(() => {
+            const scrollAmount = img.offsetHeight - container.height;
+            if (scrollAmount > 0) {
+              img.style.transform = `translateY(-${scrollAmount}px)`;
+            }
+          }, 100);
         } else {
-          // Horizontal scroll
+          // Horizontal scroll: fit height
           slide.classList.add("scroll-horizontal");
-          const scrollAmount = img.offsetWidth - slide.offsetWidth;
-          img.style.transform = `translateX(-${scrollAmount}px)`;
+          setTimeout(() => {
+            const scrollAmount = img.offsetWidth - container.width;
+            if (scrollAmount > 0) {
+              img.style.transform = `translateX(-${scrollAmount}px)`;
+            }
+          }, 100);
         }
       };
     }
-
-    let index = 0;
 
     function showSlides() {
       slides.forEach((slide, i) => {
