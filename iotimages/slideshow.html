@@ -56,11 +56,11 @@
     }
 
     .slide img {
-      position: absolute;
-      top: 0;
-      left: 0;
+      position: relative;
       transition: transform 10s linear;
       border-radius: 20px;
+      display: block;
+      max-width: none;
     }
 
     .scroll-vertical img {
@@ -76,7 +76,7 @@
 </head>
 <body>
   <div class="aspect-ratio-box">
-    <div class="version-tag">v1.4 – 2025-08-11</div>
+    <div class="version-tag">v1.5 – 2025-08-11</div>
     <div class="slideshow-container">
       <div class="slide active">
         <img src="https://raw.githubusercontent.com/rarva/SmartLivingConcepts/main/iotimages/1.jpg" alt="Slide 1">
@@ -101,28 +101,36 @@
       img.style.transform = "none";
       slide.classList.remove("scroll-vertical", "scroll-horizontal");
 
-      // Wait for image to fully load
       const checkImageReady = () => {
         if (img.complete && img.naturalWidth > 0) {
           const naturalWidth = img.naturalWidth;
           const naturalHeight = img.naturalHeight;
           const container = slide.getBoundingClientRect();
 
+          let direction = "horizontal";
+          let scrollAmount = 0;
+
           if (naturalHeight > naturalWidth) {
+            direction = "vertical";
             slide.classList.add("scroll-vertical");
-            const scrollAmount = img.offsetHeight - container.height;
-            if (scrollAmount > 0) {
-              img.style.transform = `translateY(-${scrollAmount}px)`;
-            }
+            scrollAmount = img.offsetHeight - container.height;
           } else {
+            direction = "horizontal";
             slide.classList.add("scroll-horizontal");
-            const scrollAmount = img.offsetWidth - container.width;
-            if (scrollAmount > 0) {
-              img.style.transform = `translateX(-${scrollAmount}px)`;
-            }
+            scrollAmount = img.offsetWidth - container.width;
+          }
+
+          if (scrollAmount > 0) {
+            img.style.transform = direction === "vertical"
+              ? `translateY(-${scrollAmount}px)`
+              : `translateX(-${scrollAmount}px)`;
+          } else {
+            // Force a small movement to show it's working
+            img.style.transform = direction === "vertical"
+              ? `translateY(-20px)`
+              : `translateX(-20px)`;
           }
         } else {
-          // Retry after a short delay
           setTimeout(checkImageReady, 100);
         }
       };
