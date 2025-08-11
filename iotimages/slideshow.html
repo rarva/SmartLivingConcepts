@@ -2,112 +2,198 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Slideshow v2.6</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Image Scroll Showcase v2.5</title>
   <style>
-    html, body {
+    body {
       margin: 0;
-      padding: 0;
-      background: black;
+      background: #000;
       overflow: hidden;
-      height: 100%;
-      width: 100%;
+      font-family: sans-serif;
     }
-    .slideshow-container {
+
+    .slideshow {
       position: relative;
       width: 100vw;
       height: 100vh;
     }
-    .slideshow-image {
+
+    .slide {
       position: absolute;
       top: 0;
       left: 0;
-      object-fit: cover;
-      transition: opacity 1s ease-in-out;
+      width: 100%;
+      height: 100%;
       opacity: 0;
-      will-change: transform;
+      transition: opacity 1.5s ease-in-out;
+      overflow: hidden;
+      z-index: 0;
     }
-    .visible {
+
+    .slide.active {
       opacity: 1;
+      z-index: 2;
+    }
+
+    .slide img {
+      position: absolute;
+      top: 0;
+      left: 0;
+      will-change: transform;
+      transition: transform 10s linear;
+    }
+
+    .scroll-horizontal img {
+      height: 100%;
+      width: auto;
+    }
+
+    .scroll-vertical img {
+      width: 100%;
+      height: auto;
+    }
+
+    .version-tag {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      color: #fff;
+      font-size: 12px;
+      opacity: 0.5;
+      pointer-events: none;
     }
   </style>
 </head>
 <body>
-  <div class="slideshow-container">
-    <img class="slideshow-image" src="1.jpg" />
-    <img class="slideshow-image" src="2.jpg" />
-    <img class="slideshow-image" src="3.jpg" />
-  </div>
+  <div class="slideshow" id="slideshow"></div>
+  <div class="version-tag">v2.5</div>
 
   <script>
-    const images = document.querySelectorAll(".slideshow-image");
-    const container = document.querySelector(".slideshow-container").getBoundingClientRect();
-    let currentIndex = 0;
+    const imageFolder = "https://rarva.github.io/SmartLivingConcepts/iotimages/";
+    const slideshow = document.getElementById("slideshow");
     let scrollDirectionToggle = true;
+    let currentSlideIndex = 0;
+    let slides = [];
 
-    function showImage(index) {
-      images.forEach((img, i) => {
-        img.classList.remove("visible");
-        img.style.transform = "translate(0, 0)";
-        img.style.transition = "none";
-      });
-
-      const img = images[index];
-      img.classList.add("visible");
-
-      img.onload = () => applyScrollEffect(img);
-      if (img.complete) applyScrollEffect(img);
+    function loadImagesSequentially(index = 1) {
+      const img = new Image();
+      img.src = `${imageFolder}${index}.jpg`;
+      img.onload = () => {
+        const slide = document.createElement("div");
+        slide.className = "slide";
+        slide.appendChild(img);
+        slideshow.appendChild(slide);
+        slides.push(slide);
+        loadImagesSequentially(index + 1);
+      };
+      img.onerror = () => {
+        if (slides.length > 0) startSlideshow();
+      };
     }
 
-    function applyScrollEffect(img) {
-      const naturalWidth = img.naturalWidth;
-      const naturalHeight = img.naturalHeight;
-      const containerWidth = container.width;
-      const containerHeight = container.height;
+    function applyScrollEffect(slide) {
+      const img = slide.querySelector("img");
 
-      if (naturalWidth === naturalHeight) {
-        // Square image: scale to 110% of container
-        const enlargedWidth = containerWidth * 1.1;
-        const enlargedHeight = containerHeight * 1.1;
+      img.style.transition = "none";
+      img.style.transform = "none";
+      slide.classList.remove("scroll-vertical", "scroll-horizontal");
 
-        img.style.width = `${enlargedWidth}px`;
-        img.style.height = `${enlargedHeight}px`;
-        img.style.top = "0";
-        img.style.left = "0";
-        img.style.transition = "none";
-        img.style.transform = "translate(0, 0)";
+      const checkImageReady = () => {
+        if (img.complete && img.naturalWidth > 0) {
+          const naturalWidth = img.naturalWidth;
+          const naturalHeight = img.naturalHeight;
+          const container = slide.getBoundingClientRect();
 
-        void img.offsetWidth;
+          if (naturalWidth === naturalHeight) {
+            const scale = 1.1;
+            img.style.transform = `scale(${scale}) translate(0, 0)`;
+            img.style.transition = "none";
 
-        const moveX = scrollDirectionToggle ? containerWidth * 0.1 : -containerWidth * 0.1;
-        const moveY = scrollDirectionToggle ? containerHeight * 0.1 : -containerHeight * 0.1;
+            void img.offsetWidth;
 
-        img.style.transition = "transform 10s linear";
-        img.style.transform = `translate(${moveX}px, ${moveY}px)`;
-      } else {
-        // Non-square image: scale based on aspect ratio
-        const scaleFactor = 1.1;
-        img.style.width = "100%";
-        img.style.height = "100%";
-        img.style.transition = "none";
-        img.style.transform = "scale(1)";
+            const moveX = scrollDirectionToggle ? 10 : -10;
+            const moveY = scrollDirectionToggle ? 10 : -10;
 
-        void img.offsetWidth;
+            img.style.transition = "transform 10s linear";
+            img.style.transform = `scale(${scale}) translate(${moveX}%, ${moveY}%)`;
+          } else if (naturalHeight > naturalWidth) {
+            slide.classList.add("scroll-vertical");
+            const scrollAmount = img.offsetHeight - container.height;
 
-        img.style.transition = "transform 10s linear";
-        img.style.transform = `scale(${scaleFactor})`;
+            if (scrollAmount > 0) {
+              img.style.transform = scrollDirectionToggle
+                ? `translateY(0)`
+                : `translateY(-${scrollAmount}px)`;
+
+              void img.offsetWidth;
+              img.style.transition = "transform 10s linear";
+              img.style.transform = scrollDirectionToggle
+                ? `translateY(-${scrollAmount}px)`
+                : `translateY(0)`;
+            }
+          } else {
+            slide.classList.add("scroll-horizontal");
+            const scrollAmount = img.offsetWidth - container.width;
+
+            if (scrollAmount > 0) {
+              img.style.transform = scrollDirectionToggle
+                ? `translateX(0)`
+                : `translateX(-${scrollAmount}px)`;
+
+              void img.offsetWidth;
+              img.style.transition = "transform 10s linear";
+              img.style.transform = scrollDirectionToggle
+                ? `translateX(-${scrollAmount}px)`
+                : `translateX(0)`;
+            }
+          }
+        } else {
+          setTimeout(checkImageReady, 100);
+        }
+      };
+
+      checkImageReady();
+    }
+
+    function showSlide(index) {
+      const previous = slides[currentSlideIndex];
+      const current = slides[index];
+
+      if (previous) {
+        previous.classList.remove("active");
+        previous.style.zIndex = 1;
       }
 
+      current.classList.add("active");
+      current.style.zIndex = 2;
+      current.style.opacity = "1";
+
+      applyScrollEffect(current);
+
+      // Fade out previous slide after 8.5s
+      if (previous) {
+        setTimeout(() => {
+          previous.style.opacity = "0";
+        }, 8500);
+      }
+
+      currentSlideIndex = index;
+    }
+
+    function nextSlide() {
+      const nextIndex = (currentSlideIndex + 1) % slides.length;
       scrollDirectionToggle = !scrollDirectionToggle;
+      showSlide(nextIndex);
     }
 
-    function nextImage() {
-      currentIndex = (currentIndex + 1) % images.length;
-      showImage(currentIndex);
+    function startSlideshow() {
+      showSlide(currentSlideIndex);
+      setInterval(nextSlide, 12000);
     }
 
-    showImage(currentIndex);
-    setInterval(nextImage, 12000);
+    window.addEventListener("load", () => {
+      loadImagesSequentially();
+    });
   </script>
 </body>
 </html>
