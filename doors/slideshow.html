@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Video Slideshow v3.9</title>
+  <title>Video Slideshow v5.0</title>
   <style>
     body {
       margin: 0;
@@ -39,6 +39,8 @@
       width: 100%;
       height: 100%;
       object-fit: cover;
+      transform: scale(1) translate(0, 0);
+      transition: transform 12s linear;
     }
 
     .version-tag {
@@ -54,10 +56,10 @@
 </head>
 <body>
   <div class="slideshow" id="slideshow"></div>
-  <div class="version-tag">v3.9</div>
+  <div class="version-tag">v5.0</div>
 
   <script>
-    const videoFolder = ""; // All videos are in the same folder as this HTML file
+    const videoFolder = "";
     const slideshow = document.getElementById("slideshow");
     let currentSlideIndex = 0;
     let slides = [];
@@ -103,6 +105,22 @@
       };
     }
 
+    function applyKenBurnsEffect(video) {
+      const directions = [
+        { xStart: 0, yStart: 0, xEnd: 5, yEnd: 5 },
+        { xStart: 5, yStart: 0, xEnd: -5, yEnd: 5 },
+        { xStart: 0, yStart: 5, xEnd: 5, yEnd: -5 },
+        { xStart: -5, yStart: -5, xEnd: 5, yEnd: 5 }
+      ];
+      const dir = directions[Math.floor(Math.random() * directions.length)];
+
+      video.style.transform = `scale(1.05) translate(${dir.xStart}%, ${dir.yStart}%)`;
+
+      requestAnimationFrame(() => {
+        video.style.transform = `scale(1.15) translate(${dir.xEnd}%, ${dir.yEnd}%)`;
+      });
+    }
+
     function showSlide(index) {
       const previous = slides[currentSlideIndex];
       const current = slides[index];
@@ -114,6 +132,9 @@
 
       video.currentTime = 0;
       video.play();
+      video.style.transform = "scale(1) translate(0, 0)";
+      void video.offsetWidth;
+      applyKenBurnsEffect(video);
 
       video.onended = () => {
         nextSlide();
@@ -161,6 +182,8 @@
       firstSlide.appendChild(firstVideo);
       slideshow.appendChild(firstSlide);
       slides.push(firstSlide);
+
+      applyKenBurnsEffect(firstVideo);
 
       firstVideo.onended = () => {
         buildPlaylist();
