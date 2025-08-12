@@ -1,1 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Image Scroll Showcase v3.7</title>
+  <style>
+    body {
+      margin: 0;
+      background: #000;
+      overflow: hidden;
+      font-family: sans-serif;
+    }
 
+    .slideshow {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    .slide {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      transition: opacity 3s ease-in-out;
+      overflow: hidden;
+      z-index: 0;
+    }
+
+    .slide.active {
+      opacity: 1;
+      z-index: 2;
+    }
+
+    .slide img {
+      position: absolute;
+      top: 0;
+      left: 0;
+      will-change: transform;
+    }
+
+    .scroll-horizontal img {
+      height: 100%;
+      width: auto;
+    }
+
+    .scroll-vertical img {
+      width: 100%;
+      height: auto;
+    }
+
+    .version-tag {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      color: #fff;
+      font-size: 12px;
+      opacity: 0.5;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="slideshow" id="slideshow"></div>
+  <div class="version-tag">v3.7</div>
+
+  <script>
+    const imageFolder = "https://rarva.github.io/SmartLivingConcepts/ledstripimages/";
+    const slideshow = document.getElementById("slideshow");
+    let scrollDirectionToggle = true;
+    let currentSlideIndex = 0;
+    let slides = [];
+    let playlist = [];
+    let playlistIndex = 0;
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    function buildPlaylist() {
+      const shuffled = shuffle([...Array(slides.length - 1).keys()].map(i => i + 1));
+      playlist = [0, ...shuffled];
+      playlistIndex = 0;
+    }
+
+    function loadImagesSequentially(index = 1) {
+      const img = new Image();
+      img.src = `${imageFolder}image${index}.jpg`;
+      img.onload = () => {
+        const slide = document.createElement("div");
+        slide.className = "slide";
+        slide.appendChild(img);
+        slideshow.appendChild(slide);
+        slides.push(slide);
+        loadImagesSequentially(index + 1);
+      };
+      img.onerror = () => {
+        if (slides.length > 1) {
+          buildPlaylist();
+          startSlideshow();
+        }
+      };
+    }
+
+    function applyScrollEffect(slide) {
+      const img = slide.querySelector("img");
+
+      img.style.transition = "none";
+      img.style.transform = "none";
+      slide.classList.remove("scroll-vertical", "scroll-horizontal");
+
+      const checkImageReady = () => {
+        if (img.complete && img.naturalWidth > 0) {
+          const naturalWidth = img.naturalWidth;
+          const naturalHeight = img.naturalHeight;
+          const container = slide.getBoundingClientRect();
+          const duration = 12;
+
+          if (naturalWidth === naturalHeight) {
+            const scale = 1.1;
+            img.style.width = `${container.width}px`;
+            img.style.height = `${container.height}px`;
+
+            void img.offsetWidth;
+
+            const moveX = scrollDirectionToggle ? 5 : -5;
+            const moveY = scrollDirectionToggle ? 5 : -5;
+
+            img.style.transition = `transform ${duration}s linear`;
+            img.style.transform = `scale(${scale}) translate(${moveX}%, ${moveY}%)`;
+          } else if (naturalHeight > naturalWidth) {
+            slide.classList.add("scroll-vertical");
+            const fullScroll = img.offsetHeight - container.height;
+            const scrollAmount = Math.min(fullScroll, container.height * 0.5);
+
+            if (scrollAmount > 0) {
+              img.style.transform = scrollDirectionToggle
+                ? `translateY(0)`
+                : `translateY(-${scrollAmount}px)`;
+
+              void img.offsetWidth;
+              img.style.transition = `transform ${duration}s linear`;
+              img.style.transform = scrollDirectionToggle
+                ? `translateY(-${scrollAmount}px)`
+                : `translateY(0)`;
+            }
+          } else {
+            slide.classList.add("scroll-horizontal");
+            const fullScroll = img.offsetWidth - container.width;
+            const scrollAmount = Math.min(fullScroll, container.width * 0.5);
+
+            if (scrollAmount > 0) {
+              img.style.transform = scrollDirectionToggle
+                ? `translateX(0)`
+                : `translateX(-${scrollAmount}px)`;
+
+              void img.offsetWidth;
+              img.style.transition = `transform ${duration}s linear`;
+              img.style.transform = scrollDirectionToggle
+                ? `translateX(-${scrollAmount}px)`
+                : `translateX(0)`;
+            }
+          }
+        } else {
+          setTimeout(checkImageReady, 100);
+        }
+      };
+
+      checkImageReady();
+    }
+
+    function showSlide(index) {
+      const previous = slides[currentSlideIndex];
+      const current = slides[index];
+
+      current.classList.add("active");
+      current.style.zIndex = 2;
+      current.style.opacity = "1";
+
+      applyScrollEffect(current);
+
+      if (previous && previous !== current) {
+        previous.style.zIndex = 1;
+        previous.classList.remove("active");
+        previous.style.opacity = "1";
+
+        setTimeout(() => {
+          previous.style.opacity = "0";
+        }, 0);
+      }
+
+      currentSlideIndex = index;
+    }
+
+    function nextSlide() {
+      playlistIndex++;
+      if (playlistIndex >= playlist.length) {
+        buildPlaylist();
+      }
+      const nextIndex = playlist[playlistIndex];
+      scrollDirectionToggle = !scrollDirectionToggle;
+      showSlide(nextIndex);
+    }
+
+    function startSlideshow() {
+      showSlide(playlist[playlistIndex]);
+      setTimeout(() => {
+        setInterval(nextSlide, 9000);
+        nextSlide();
+      }, 9000);
+    }
+
+    // 🚀 Load first image immediately
+    const firstImg = new Image();
+    firstImg.src = `${imageFolder}image0.jpg`;
+    firstImg.onload = () => {
+      const firstSlide = document.createElement("div");
+      firstSlide.className = "slide active";
+      firstSlide.appendChild(firstImg);
+      slideshow.appendChild(firstSlide);
+      slides.push(firstSlide);
+      applyScrollEffect(firstSlide);
+      loadImagesSequentially(); // start loading the rest
+    };
+  </script>
+</body>
+</html>
