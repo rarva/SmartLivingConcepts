@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Image Scroll Showcase v3.6</title>
+  <title>Image Scroll Showcase v3.7</title>
   <style>
     body {
       margin: 0;
@@ -65,7 +65,7 @@
 </head>
 <body>
   <div class="slideshow" id="slideshow"></div>
-  <div class="version-tag">v3.6</div>
+  <div class="version-tag">v3.7</div>
 
   <script>
     const imageFolder = "https://rarva.github.io/SmartLivingConcepts/iotimages/";
@@ -86,7 +86,7 @@
 
     function buildPlaylist() {
       const shuffled = shuffle([...Array(slides.length - 1).keys()].map(i => i + 1));
-      playlist = [0, ...shuffled]; // always start with first image
+      playlist = [0, ...shuffled];
       playlistIndex = 0;
     }
 
@@ -202,7 +202,7 @@
     function nextSlide() {
       playlistIndex++;
       if (playlistIndex >= playlist.length) {
-        buildPlaylist(); // reshuffle for new round
+        buildPlaylist();
       }
       const nextIndex = playlist[playlistIndex];
       scrollDirectionToggle = !scrollDirectionToggle;
@@ -210,16 +210,25 @@
     }
 
     function startSlideshow() {
-      showSlide(playlist[playlistIndex]); // show first image
+      showSlide(playlist[playlistIndex]);
       setTimeout(() => {
         setInterval(nextSlide, 9000);
         nextSlide();
-      }, 9000); // allow first image to scroll and fade in
+      }, 9000);
     }
 
-    window.addEventListener("load", () => {
-      loadImagesSequentially();
-    });
+    // 🚀 Load first image immediately
+    const firstImg = new Image();
+    firstImg.src = `${imageFolder}0.jpg`;
+    firstImg.onload = () => {
+      const firstSlide = document.createElement("div");
+      firstSlide.className = "slide active";
+      firstSlide.appendChild(firstImg);
+      slideshow.appendChild(firstSlide);
+      slides.push(firstSlide);
+      applyScrollEffect(firstSlide);
+      loadImagesSequentially(); // start loading the rest
+    };
   </script>
 </body>
 </html>
