@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Video Showcase v3.8</title>
+  <title>Video Slideshow v3.9</title>
   <style>
     body {
       margin: 0;
@@ -55,10 +54,10 @@
 </head>
 <body>
   <div class="slideshow" id="slideshow"></div>
-  <div class="version-tag">v3.8</div>
+  <div class="version-tag">v3.9</div>
 
   <script>
-    const videoFolder = "https://rarva.github.io/SmartLivingConcepts/doors/";
+    const videoFolder = ""; // All videos are in the same folder as this HTML file
     const slideshow = document.getElementById("slideshow");
     let currentSlideIndex = 0;
     let slides = [];
@@ -79,7 +78,7 @@
       playlistIndex = 0;
     }
 
-    function loadVideosSequentially(index = 1) {
+    function loadVideosSequentially(index = 2) {
       const video = document.createElement("video");
       video.src = `${videoFolder}video${index}.mp4`;
       video.autoplay = false;
