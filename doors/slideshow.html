@@ -1,1 +1,175 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Video Showcase v3.8</title>
+  <style>
+    body {
+      margin: 0;
+      background: #000;
+      overflow: hidden;
+      font-family: sans-serif;
+    }
+
+    .slideshow {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    .slide {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      transition: opacity 3s ease-in-out;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .slide.active {
+      opacity: 1;
+      z-index: 2;
+    }
+
+    .slide video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .version-tag {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      color: #fff;
+      font-size: 12px;
+      opacity: 0.5;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="slideshow" id="slideshow"></div>
+  <div class="version-tag">v3.8</div>
+
+  <script>
+    const videoFolder = "https://rarva.github.io/SmartLivingConcepts/doors/";
+    const slideshow = document.getElementById("slideshow");
+    let currentSlideIndex = 0;
+    let slides = [];
+    let playlist = [];
+    let playlistIndex = 0;
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    function buildPlaylist() {
+      const shuffled = shuffle([...Array(slides.length - 1).keys()].map(i => i + 1));
+      playlist = [0, ...shuffled];
+      playlistIndex = 0;
+    }
+
+    function loadVideosSequentially(index = 1) {
+      const video = document.createElement("video");
+      video.src = `${videoFolder}video${index}.mp4`;
+      video.autoplay = false;
+      video.muted = true;
+      video.playsInline = true;
+      video.preload = "auto";
+
+      video.onloadeddata = () => {
+        const slide = document.createElement("div");
+        slide.className = "slide";
+        slide.appendChild(video);
+        slideshow.appendChild(slide);
+        slides.push(slide);
+        loadVideosSequentially(index + 1);
+      };
+
+      video.onerror = () => {
+        if (slides.length > 1) {
+          buildPlaylist();
+          startSlideshow();
+        }
+      };
+    }
+
+    function showSlide(index) {
+      const previous = slides[currentSlideIndex];
+      const current = slides[index];
+      const video = current.querySelector("video");
+
+      current.classList.add("active");
+      current.style.zIndex = 2;
+      current.style.opacity = "1";
+
+      video.currentTime = 0;
+      video.play();
+
+      video.onended = () => {
+        nextSlide();
+      };
+
+      if (previous && previous !== current) {
+        const prevVideo = previous.querySelector("video");
+        prevVideo.pause();
+        previous.style.zIndex = 1;
+        previous.classList.remove("active");
+        previous.style.opacity = "1";
+
+        setTimeout(() => {
+          previous.style.opacity = "0";
+        }, 0);
+      }
+
+      currentSlideIndex = index;
+    }
+
+    function nextSlide() {
+      playlistIndex++;
+      if (playlistIndex >= playlist.length) {
+        buildPlaylist();
+      }
+      const nextIndex = playlist[playlistIndex];
+      showSlide(nextIndex);
+    }
+
+    function startSlideshow() {
+      showSlide(playlist[playlistIndex]);
+    }
+
+    // 🚀 Load first video immediately
+    const firstVideo = document.createElement("video");
+    firstVideo.src = `${videoFolder}video1.mp4`;
+    firstVideo.autoplay = true;
+    firstVideo.muted = true;
+    firstVideo.playsInline = true;
+    firstVideo.preload = "auto";
+
+    firstVideo.onloadeddata = () => {
+      const firstSlide = document.createElement("div");
+      firstSlide.className = "slide active";
+      firstSlide.appendChild(firstVideo);
+      slideshow.appendChild(firstSlide);
+      slides.push(firstSlide);
+
+      firstVideo.onended = () => {
+        buildPlaylist();
+        startSlideshow();
+      };
+
+      loadVideosSequentially(); // start loading the rest
+    };
+  </script>
+</body>
+</html>
